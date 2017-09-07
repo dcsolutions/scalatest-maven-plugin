@@ -2,31 +2,20 @@ package org.scalatest.tools.maven;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.cli.CommandLineException;
-import org.codehaus.plexus.util.cli.CommandLineTimeOutException;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
-import org.codehaus.plexus.util.cli.StreamConsumer;
+import org.codehaus.plexus.util.cli.*;
 
-import static org.scalatest.tools.maven.MojoUtils.*;
-
-import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-
-import static java.util.Collections.singletonList;
-
-import java.net.MalformedURLException;
-import java.net.URLClassLoader;
-import java.net.URL;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
+
+import static java.util.Collections.singletonList;
+import static org.scalatest.tools.maven.MojoUtils.*;
 
 /**
  * Provides the base for all mojos.
@@ -240,6 +229,8 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
         getLog().debug(Arrays.toString(args));
         if (forkMode.equals("never")) {
             return runWithoutForking(args);
+        } else if (forkMode.equals("suite-sequential")) {
+            return runForkingSuiteSequential(args);
         }
         else {
             if (!forkMode.equals("once")) {
@@ -263,6 +254,91 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
                 throw new IllegalArgumentException(target);
             }
         }
+    }
+    
+    private boolean runForkingSuiteSequential(String[] args) throws MojoFailureException {
+        String classesPath = project.getBuild().getTestOutputDirectory()+"/";
+        TestClassesCollector collector = new TestClassesCollector(classesPath);
+        Iterator<String> classes = collector.testClasses().iterator();
+        String classPathEnv = buildClassPathEnvironment();
+        while (classes.hasNext()) {
+            
+            String testSuite = classes.next();
+    
+            final Commandline cli = new Commandline();
+            cli.setWorkingDirectory(project.getBasedir());
+            cli.setExecutable("java");
+    
+            // Set up environment
+            if (environmentVariables != null) {
+                for (final Map.Entry<String, String> entry : environmentVariables.entrySet()) {
+                    cli.addEnvironment(entry.getKey(), entry.getValue());
+                }
+            }
+            cli.addEnvironment("CLASSPATH", classPathEnv);
+    
+            // Set up system properties
+            if (systemProperties != null) {
+                for (final Map.Entry<String, String> entry : systemProperties.entrySet()) {
+                    cli.createArg().setValue(String.format("-D%s=%s", entry.getKey(), entry.getValue()));
+                }
+            }
+            cli.createArg().setValue(String.format("-Dbasedir=%s", project.getBasedir().getAbsolutePath()));
+    
+            // Set user specified JVM arguments
+            if (argLine != null) {
+                cli.createArg().setLine(argLine);
+            }
+    
+            // Set debugging JVM arguments if debugging is enabled
+            if (debugForkedProcess) {
+                cli.createArg().setLine(forkedProcessDebuggingArguments());
+            }
+    
+            // Set ScalaTest arguments
+            cli.createArg().setValue("org.scalatest.tools.Runner");
+            for (final String arg : args) {
+                cli.createArg().setValue(arg);
+            }
+    
+            cli.createArg().setValue("-s");
+            cli.createArg().setValue(testSuite);
+    
+            final StreamConsumer streamConsumer = new StreamConsumer() {
+                public void consumeLine(final String line) {
+                    System.out.println(line);
+                }
+            };
+    
+            try {
+                if (collector.isClassATestSuite(getLog(), project.getBasedir().getAbsolutePath(), classPathEnv, classesPath, testSuite)) {
+                    
+                    // Log command string
+                    final String commandLogStatement = "Forking ScalaTest via: " + cli + " for possible test suite: " + testSuite;
+                    if (logForkedProcessCommand) {
+                        getLog().info(commandLogStatement);
+                    } else {
+                        getLog().debug(commandLogStatement);
+                    }
+                    
+                    final int result = CommandLineUtils.executeCommandLine(cli, streamConsumer, streamConsumer, forkedProcessTimeoutInSeconds);
+                    if (result != 0) {
+                        return false;
+                    }
+                } else {
+                    getLog().debug(String.format("Class %s doesn't appear to be a test suite. Skipping.", testSuite));
+                }
+            }
+            catch (final CommandLineTimeOutException e) {
+                throw new MojoFailureException(String.format("Timed out after %d seconds waiting for forked process to complete.", forkedProcessTimeoutInSeconds));
+            }
+            catch (final CommandLineException e) {
+                throw new MojoFailureException("Exception while executing forked process.", e);
+            }
+            
+        }
+        
+        return true;
     }
 
     // Returns true if all tests pass
