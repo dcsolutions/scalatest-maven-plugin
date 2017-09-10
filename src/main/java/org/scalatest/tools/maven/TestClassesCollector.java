@@ -81,7 +81,7 @@ public class TestClassesCollector {
     cli.setExecutable("java");
     cli.addEnvironment("CLASSPATH", classPath);
     cli.createArg().setValue(String.format("-Dbasedir=%s", baseDir));
-    cli.createArg().setValue("org.scalatest.extern.IsClassATestSuite");
+    cli.createArg().setValue("com.diehl.scalatest.forkTools.IsClassATestSuite");
     cli.createArg().setValue(testOutputDirectory);
     cli.createArg().setValue(cls);
     final StreamConsumer streamConsumer = new StreamConsumer() {
