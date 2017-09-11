@@ -32,6 +32,7 @@
     <maven.reporting.api.version>3.0</maven.reporting.api.version>
     <scala.maven.plugin.version>3.2.2</scala.maven.plugin.version>
     <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
+    <maven-gpg-plugin.phase>verify</maven-gpg-plugin.phase>
   </properties>
 
   <licenses>
@@ -187,7 +188,6 @@
           </goals>
         </configuration>
       </plugin>
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
@@ -195,14 +195,13 @@
         <executions>
           <execution>
             <id>sign-artifacts</id>
-            <phase>verify</phase>
+            <phase>${maven-gpg-plugin.phase}</phase>
             <goals>
               <goal>sign</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
--->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -226,6 +225,15 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>nosign</id>
+      <properties>
+        <maven-gpg-plugin.phase>none</maven-gpg-plugin.phase>
+      </properties>
+    </profile>
+  </profiles>
 
   <reporting>
     <plugins>
