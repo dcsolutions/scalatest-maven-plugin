@@ -108,9 +108,6 @@ public class TestMojo extends AbstractScalaTestMojo {
 			if( !runScalaTest( configuration() ) && !testFailureIgnore ) {
 				throw new MojoFailureException( "There are test failures" );
 			}
-			// if( !runJavaTest( junitClasses2() ) && !testFailureIgnore ) {
-			// throw new MojoFailureException( "There are test failures" );
-			// }
 		}
 	}
 

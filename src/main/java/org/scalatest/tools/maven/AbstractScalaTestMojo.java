@@ -154,13 +154,6 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 	String testsFiles;
 
 	/**
-	 * Comma separated list of JUnit suites/tests to execute
-	 * 
-	 * @parameter property="junitClasses"
-	 */
-	String jUnitClasses;
-
-	/**
 	 * Option to specify the forking mode. Can be "never" or "once". "always", which would fork for each test-class, may be
 	 * supported later.
 	 *
@@ -257,80 +250,6 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 				getLog().error( "Invalid forkMode: \"" + forkMode + "\"; Using once instead." );
 			}
 			return runForkingOnce( args );
-		}
-	}
-
-	boolean runJavaTest(List<String> junitClasses) throws MojoFailureException {
-		getLog().debug( junitClasses.toString() );
-		if( forkMode.equals( "suite-sequential" ) ) {
-			String classesPath = project.getBuild()
-			                            .getTestOutputDirectory()
-			                     + "/";
-			String classPathEnv = buildClassPathEnvironment();
-			for( String clazz : junitClasses ) {
-				final Commandline cli = new Commandline();
-				cli.setWorkingDirectory( project.getBasedir() );
-				cli.setExecutable( "java" );
-				// Set up environment
-				if( environmentVariables != null ) {
-					for( final Map.Entry<String, String> entry : environmentVariables.entrySet() ) {
-						cli.addEnvironment( entry.getKey(), entry.getValue() );
-					}
-				}
-				cli.addEnvironment( "CLASSPATH", classPathEnv );
-				// Set up system properties
-				if( systemProperties != null ) {
-					for( final Map.Entry<String, String> entry : systemProperties.entrySet() ) {
-						cli.createArg()
-						   .setValue( String.format( "-D%s=%s", entry.getKey(), entry.getValue() ) );
-					}
-				}
-				cli.createArg()
-				   .setValue( String.format( "-Dbasedir=%s",
-				                             project.getBasedir()
-				                                    .getAbsolutePath() ) );
-				// Set user specified JVM arguments
-				if( argLine != null ) {
-					cli.createArg()
-					   .setLine( argLine );
-				}
-
-				// Set debugging JVM arguments if debugging is enabled
-				if( debugForkedProcess ) {
-					cli.createArg()
-					   .setLine( forkedProcessDebuggingArguments() );
-				}
-
-				// Set JUnit arguments
-				cli.createArg()
-				   .setValue( "org.junit.runner.JUnitCore" );
-				cli.createArg()
-				   .setValue( clazz );
-				final StreamConsumer streamConsumer = line -> System.out.println( line );
-
-				final String commandLogStatement = "Forking ScalaTest via: " + cli + " for possible test suite: " + clazz;
-				if( logForkedProcessCommand ) {
-					getLog().info( commandLogStatement );
-				} else {
-					getLog().debug( commandLogStatement );
-				}
-				System.out.println( "xxxxxxxxxx commandline=\n" + cli.toString() );
-
-				try {
-					final int result = CommandLineUtils.executeCommandLine( cli, streamConsumer, streamConsumer, forkedProcessTimeoutInSeconds );
-					if( result != 0 ) {
-						return false;
-					}
-				} catch (final CommandLineTimeOutException e) {
-					throw new MojoFailureException( String.format( "Timed out after %d seconds waiting for forked process to complete.",
-					                                               forkedProcessTimeoutInSeconds ) );
-				} catch (final CommandLineException e) {
-					throw new MojoFailureException( "Exception while executing forked process.", e );
-				}
-			}
-			return true;
-		} else {
-			throw new UnsupportedOperationException( "Not yet implemented=" + forkMode );
 		}
 	}
 
@@ -768,18 +687,5 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 			}
 		}
 		return list;
-	}
-
-	// private List<String> junitClasses() {
-	// return suiteArg( "-j", jUnitClasses );
-	// }
-
-	List<String> junitClasses2() {
-		if( jUnitClasses == null ) {
-			return Collections.emptyList();
-		}
-		return Splitter.on( ',' )
-		               .omitEmptyStrings()
-		               .splitToList( jUnitClasses );
 	}
 }

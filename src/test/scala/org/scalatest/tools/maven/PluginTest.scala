@@ -164,10 +164,6 @@ final class PluginTest extends JUnit3Suite with BeforeAndAfterAll with Matchers 
     configure(_.testNGConfigFiles = comma("a", "b", "c")) should containSuiteArgs("-b", "a", "b", "c")
   }
 
-  def testJUnits {
-    configure(_.jUnitClasses = comma("a", "b", "c")) should containSuiteArgs("-j", "a", "b", "c")
-  }
-
   def testMemoryFiles {
     configure(_.memoryFiles = comma("a", "b", "c")) should containSuiteArgs("-M", "a", "b", "c")
   }
