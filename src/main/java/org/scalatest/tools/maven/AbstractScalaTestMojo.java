@@ -775,6 +775,9 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 	// }
 
 	List<String> junitClasses2() {
+		if( jUnitClasses == null ) {
+			return Collections.emptyList();
+		}
 		return Splitter.on( ',' )
 		               .omitEmptyStrings()
 		               .splitToList( jUnitClasses );

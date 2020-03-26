@@ -105,12 +105,12 @@ public class TestMojo extends AbstractScalaTestMojo {
 		if( skipTests ) {
 			getLog().info( "Tests are skipped." );
 		} else {
-			// if( !runScalaTest( configuration() ) && !testFailureIgnore ) {
-			// throw new MojoFailureException( "There are test failures" );
-			// }
-			if( !runJavaTest( junitClasses2() ) && !testFailureIgnore ) {
+			if( !runScalaTest( configuration() ) && !testFailureIgnore ) {
 				throw new MojoFailureException( "There are test failures" );
 			}
+			// if( !runJavaTest( junitClasses2() ) && !testFailureIgnore ) {
+			// throw new MojoFailureException( "There are test failures" );
+			// }
 		}
 	}
 
