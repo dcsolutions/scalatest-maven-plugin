@@ -333,7 +333,6 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 			final StreamConsumer streamConsumer = line -> System.out.println( line );
 
 			try {
-				System.out.println( "xxxxxxxxx Suite=" + testSuite );
 				if( collector.isClassATestSuite( getLog(),
 				                                 project.getBasedir()
 				                                        .getAbsolutePath(),
@@ -341,7 +340,6 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 				                                 classesPath,
 				                                 testSuite ) ) {
 
-					System.out.println( "xxxxxx isSuite" );
 					// Log command string
 					final String commandLogStatement = "Forking ScalaTest via: " + cli + " for possible test suite: " + testSuite;
 					if( logForkedProcessCommand ) {
@@ -349,7 +347,6 @@ abstract class AbstractScalaTestMojo extends AbstractMojo {
 					} else {
 						getLog().debug( commandLogStatement );
 					}
-					System.out.println( "xxxxxxxxxx commandline=\n" + cli.toString() );
 					final int result = CommandLineUtils.executeCommandLine( cli, streamConsumer, streamConsumer, forkedProcessTimeoutInSeconds );
 					if( result != 0 ) {
 						return false;
