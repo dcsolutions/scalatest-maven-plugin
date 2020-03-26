@@ -1,19 +1,15 @@
 package org.scalatest.tools.maven
 
 import java.io.File
-import org.scalatest.Matchers
-import org.scalatest.junit.JUnit3Suite
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.junit.JUnit3Suite
 import java.util.ArrayList
 import org.scalatest.BeforeAndAfterAll
 
 /**
- * @author Jon -Anders Teigen
- */
-final class PluginTest
-    extends JUnit3Suite
-    with BeforeAndAfterAll
-    with Matchers
-    with PluginMatchers {
+  * @author Jon -Anders Teigen
+  */
+final class PluginTest extends JUnit3Suite with BeforeAndAfterAll with Matchers with PluginMatchers {
   val tmpDir = new File(System.getProperty("java.io.tmpdir"))
   val reportsDirectory = new File(tmpDir, "reportsDirectory")
   val baseDir = new File(tmpDir, "basedir");
@@ -22,10 +18,11 @@ final class PluginTest
 
   override def afterAll {
     def delete(it: File) {
-      if (it.isFile) {
+      if(it.isFile) {
         it.delete()
-      } else {
-        for (d <- it.listFiles)
+      }
+      else {
+        for(d <- it.listFiles)
           delete(d)
       }
     }
@@ -33,7 +30,7 @@ final class PluginTest
     delete(baseDir);
   }
 
-  def jlist(a: String*) = new ArrayList[String]() {for (e <- a) this.add(e)}
+  def jlist(a: String*) = new ArrayList[String]() { for(e <- a) this.add(e) }
 
   def comma(a: String*) = a mkString ","
 
@@ -60,7 +57,11 @@ final class PluginTest
   }
 
   def testRunpath {
-    configure(_.runpath = comma("http://foo.com/my.jar", "/some/where")) should containCompoundArgs("-R", outputDirectory, testOutputDirectory, "http://foo.com/my.jar", "/some/where")
+    configure(_.runpath = comma("http://foo.com/my.jar", "/some/where")) should containCompoundArgs("-R",
+                                                                                                    outputDirectory,
+                                                                                                    testOutputDirectory,
+                                                                                                    "http://foo.com/my.jar",
+                                                                                                    "/some/where")
   }
 
   def testFilereporters {
@@ -70,12 +71,10 @@ final class PluginTest
   }
 
   def testHtmlreporters {
-    val config = configure(_.htmlreporters =
-      comma("target/htmldir", "target/myhtmldir src/resources/my.css"))
+    val config = configure(_.htmlreporters = comma("target/htmldir", "target/myhtmldir src/resources/my.css"))
 
     config should containSlice("-h", "target/htmldir")
-    config should containSlice("-h", "target/myhtmldir",
-                               "-Y", "src/resources/my.css")
+    config should containSlice("-h", "target/myhtmldir", "-Y", "src/resources/my.css")
   }
 
   def testReporters {
@@ -112,33 +111,27 @@ final class PluginTest
   }
 
   def testSuites {
-    val suites: String = comma(" a ",
-                               "b",
-                               "foo @bar baz",
-                               " zowie\n  zip zap ")
+    val suites: String = comma(" a ", "b", "foo @bar baz", " zowie\n  zip zap ")
 
     val config = configure(_.suites = suites)
 
-    config should containSlice ("-s", "a")
-    config should containSlice ("-s", "b")
-    config should containSlice ("-s", "foo", "-t", "bar baz")
-    config should containSlice ("-s", "zowie", "-z", "zip zap")
+    config should containSlice("-s", "a")
+    config should containSlice("-s", "b")
+    config should containSlice("-s", "foo", "-t", "bar baz")
+    config should containSlice("-s", "zowie", "-z", "zip zap")
   }
 
   def testSuitesAndTests {
     val suites: String = comma(" a ", "b c")
-    val tests:  String = comma(" d ", "@e")
+    val tests: String = comma(" d ", "@e")
 
-    val config = configure(x => {x.suites = suites; x.tests = tests})
+    val config = configure(x => { x.suites = suites; x.tests = tests })
 
-    config should containSlice ("-z", "d",
-                                "-t", "e",
-                                "-s", "a",
-                                "-s", "b", "-z", "c")
+    config should containSlice("-z", "d", "-t", "e", "-s", "a", "-s", "b", "-z", "c")
   }
 
   def testTests {
-    val tests: String= comma(" @a ", " b ", "@c")
+    val tests: String = comma(" @a ", " b ", "@c")
 
     val config = configure(_.tests = tests)
 

@@ -1,78 +1,31 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
+    <groupId>com.diehl.dcs.stratus</groupId>
+    <artifactId>stratus-parent</artifactId>
+    <version>2.5.0-SNAPSHOT</version>
   </parent>
-
-  <groupId>org.scalatest</groupId>
+  <groupId>com.diehl.dcs.stratus</groupId>
   <artifactId>scalatest-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>2.0.0-diehl</version>
-  <name>ScalaTest Maven Plugin</name>
-  <description>Integrates ScalaTest into Maven</description>
-
+  <version>1.0.0-SNAPSHOT</version>
   <properties>
-    <scala.major.version>2.11</scala.major.version>
-    <scala.minor.version>7</scala.minor.version>
-    <scala.version>${scala.major.version}.${scala.minor.version}</scala.version>
-    <scalatest.version>3.0.1</scalatest.version>
+    <scalatestplus-junit.version>3.1.1.0</scalatestplus-junit.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <build.timestamp>${maven.build.timestamp}</build.timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-    <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
-    <maven.project.info.reports.plugin.version>2.9</maven.project.info.reports.plugin.version>
-    <maven.plugin.api.version>3.3.9</maven.plugin.api.version>
-    <maven.core.version>3.3.9</maven.core.version>
+    <maven.plugin.api.version>3.6.3</maven.plugin.api.version>
+    <maven.core.version>3.6.3</maven.core.version>
     <junit.version>4.12</junit.version>
     <maven.reporting.api.version>3.0</maven.reporting.api.version>
-    <scala.maven.plugin.version>3.2.2</scala.maven.plugin.version>
-    <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
-    <maven-gpg-plugin.phase>verify</maven-gpg-plugin.phase>
   </properties>
-
-  <licenses>
-    <license>
-      <name>the Apache License, ASL Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
   <scm>
     <url>https://github.com/scalatest/scalatest-maven-plugin</url>
     <connection>scm:git:git@github.com:scalatest/scalatest-maven-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:scalatest/scalatest-maven-plugin.git</developerConnection>
   </scm>
-
-  <developers>
-    <developer>
-      <id>teigen</id>
-      <name>Jon-Anders Teigen</name>
-    </developer>
-    <developer>
-      <id>trenchguinea</id>
-      <name>Sean Griffin</name>
-      <email>trenchguinea@gmail.com</email>
-    </developer>
-    <developer>
-      <id>gcberger</id>
-      <name>George Berger</name>
-    </developer>
-    <developer>
-      <id>cheeseng</id>
-      <name>Chua Chee Seng</name>
-    </developer>
-    <developer>
-      <id>bvenners</id>
-      <name>Bill Venners</name>
-    </developer>
-  </developers>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -93,7 +46,12 @@
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.major.version}</artifactId>
       <version>${scalatest.version}</version>
-      <scope>test</scope>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatestplus</groupId>
+      <artifactId>junit-4-12_${scala.major.version}</artifactId>
+      <version>${scalatestplus-junit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
@@ -108,28 +66,17 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
-
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-site-plugin</artifactId>
-          <version>3.5.1</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>${scala.maven.plugin.version}</version>
+        <version>${scala-maven-plugin.version}</version>
         <configuration>
           <recompileMode>incremental</recompileMode>
-          <scalaVersion>${scala.version}</scalaVersion>
+          <scalaVersion>${scala.major.version}.${scala.minor.version}</scalaVersion>
         </configuration>
         <executions>
           <execution>
@@ -142,17 +89,23 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.6.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.5</version>
+        <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <argLine>-enableassertions</argLine>
         </configuration>
@@ -172,7 +125,6 @@
         </executions>
         <configuration>
           <skipInvocation>false</skipInvocation>
-
           <projectsDirectory>src/it</projectsDirectory>
           <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
           <pomIncludes>
@@ -188,105 +140,6 @@
           </goals>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>${maven.gpg.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>${maven-gpg-plugin.phase}</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${maven.enforcer.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>enforce-maven</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <!-- We get this from scala-maven-plugin -->
-                  <version>[3.0.4,)</version>
-                </requireMavenVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>nosign</id>
-      <properties>
-        <maven-gpg-plugin.phase>none</maven-gpg-plugin.phase>
-      </properties>
-    </profile>
-  </profiles>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.6</version>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>cobertura-maven-plugin</artifactId>
-        <version>2.5.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-changes-plugin</artifactId>
-        <version>2.6</version>
-        <configuration>
-          <filteringChanges>true</filteringChanges>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.3</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.7</version>
-        <configuration>
-          <charset>UTF-8</charset>
-          <docencoding>UTF-8</docencoding>
-          <docfilessubdirs>true</docfilessubdirs>
-          <show>package</show>
-          <source>1.5</source>
-          <detectLinks>true</detectLinks>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jxr-plugin</artifactId>
-        <version>2.2</version>
-        <configuration>
-          <inputEncoding>UTF-8</inputEncoding>
-          <outputEncoding>UTF-8</outputEncoding>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>2.5</version>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>

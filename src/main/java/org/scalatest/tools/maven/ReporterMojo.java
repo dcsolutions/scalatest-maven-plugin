@@ -25,136 +25,138 @@ import static org.scalatest.tools.maven.MojoUtils.*;
  */
 public class ReporterMojo extends AbstractScalaTestMojo implements MavenReport {
 
-    /**
-     * Directory where reports will go.
-     *
-     * @parameter property="project.reporting.outputDirectory"
-     * @required
-     * @readonly
-     */
-    private File reportingOutputDirectory;
+	/**
+	 * Directory where reports will go.
+	 *
+	 * @parameter property="project.reporting.outputDirectory"
+	 * @required
+	 * @readonly
+	 */
+	private File reportingOutputDirectory;
 
-    /**
-     * Consists of an optional configuration parameters for the file reporter.
-     * For more info on configuring reporters, see the ScalaTest documentation.
-     * @parameter property="fileReporterOptions"
-     */
-    private String fileReporterOptions;
+	/**
+	 * Consists of an optional configuration parameters for the file reporter. For more info on configuring reporters, see
+	 * the ScalaTest documentation.
+	 * 
+	 * @parameter property="fileReporterOptions"
+	 */
+	private String fileReporterOptions;
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        // no op, Maven doesn't even call this method but I have to implement it because it's on the interface.
-    }
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		// no op, Maven doesn't even call this method but I have to implement it because it's on the interface.
+	}
 
-    public void generate(Sink sink, Locale locale) throws MavenReportException {
-        try {
-            runScalaTest(configuration());
-        }
-        catch (MojoFailureException e) {
-            throw new MavenReportException("Failure executing ScalaTest", e);
-        }
-        catch (RuntimeException e) {
-            throw new MavenReportException("Failure executing ScalaTest", e);
-        }
+	public void generate(Sink sink, Locale locale) throws MavenReportException {
+		// try {
+		// runScalaTest( configuration() );
+		// } catch (MojoFailureException e) {
+		// throw new MavenReportException( "Failure executing ScalaTest", e );
+		// } catch (RuntimeException e) {
+		// throw new MavenReportException( "Failure executing ScalaTest", e );
+		// }
+		try {
+			runJavaTest( junitClasses2() );
+		} catch (MojoFailureException e) {
+			throw new MavenReportException( "Failure executing JavaTest", e );
+		} catch (RuntimeException e) {
+			throw new MavenReportException( "Failure executing JavaTest", e );
+		}
 
-        // ScalaTest outputs plain text but the Mojo requires HTML output so we'll create a bare-bones HTML doc and
-        // embed the ScalaTest output inside a <pre> in that doc.
+		// ScalaTest outputs plain text but the Mojo requires HTML output so we'll create a bare-bones HTML doc and
+		// embed the ScalaTest output inside a <pre> in that doc.
 
-        try {
-            sink.head();
-            sink.title();
-            sink.text(getLocalizedString(locale, "reporter.mojo.outputTitle"));
-            sink.title_();
-            sink.head_();
+		try {
+			sink.head();
+			sink.title();
+			sink.text( getLocalizedString( locale, "reporter.mojo.outputTitle" ) );
+			sink.title_();
+			sink.head_();
 
-            sink.body();
-            sink.sectionTitle1();
-            sink.text(getLocalizedString(locale, "reporter.mojo.outputTitle"));
-            sink.sectionTitle1_();
-            sink.verbatim(false);
-            sink.text(getScalaTestOutputFromFile());
-            sink.verbatim_();
-            sink.body_();
+			sink.body();
+			sink.sectionTitle1();
+			sink.text( getLocalizedString( locale, "reporter.mojo.outputTitle" ) );
+			sink.sectionTitle1_();
+			sink.verbatim( false );
+			sink.text( getScalaTestOutputFromFile() );
+			sink.verbatim_();
+			sink.body_();
 
-            sink.flush();
-            sink.close();
-        }
-        catch (IOException ioe) {
-            throw new MavenReportException("Failure generating ScalaTest report", ioe);
-        }
-    }
+			sink.flush();
+			sink.close();
+		} catch (IOException ioe) {
+			throw new MavenReportException( "Failure generating ScalaTest report", ioe );
+		}
+	}
 
-    private String[] configuration() {
-        return concat(
-                sharedConfiguration(),
-                fileReporterConfig()
-        );
-    }
+	private String[] configuration() {
+		return concat( sharedConfiguration(), fileReporterConfig() );
+	}
 
-    private List<String> fileReporterConfig() {
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-        if (fileReporterOptions != null) {
-            return reporterArg("-f", fileReporterOptions + " tempScalaTestOutput.txt", fileRelativeTo(tmpDir));
-        }
-        return reporterArg("-f", "tempScalaTestOutput.txt", fileRelativeTo(tmpDir));
-    }
+	private List<String> fileReporterConfig() {
+		File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
+		if( fileReporterOptions != null ) {
+			return reporterArg( "-f", fileReporterOptions + " tempScalaTestOutput.txt", fileRelativeTo( tmpDir ) );
+		}
+		return reporterArg( "-f", "tempScalaTestOutput.txt", fileRelativeTo( tmpDir ) );
+	}
 
-    private String getScalaTestOutputFromFile() throws IOException {
-        StringWriter fileContents = new StringWriter(1024);
-        PrintWriter writer = new PrintWriter(fileContents, true);
+	private String getScalaTestOutputFromFile() throws IOException {
+		StringWriter fileContents = new StringWriter( 1024 );
+		PrintWriter writer = new PrintWriter( fileContents, true );
 
-        // ScalaTest's FileReporter uses default character encoding so that's what we'll use here, too.
-        File outputFile = new File(System.getProperty("java.io.tmpdir"), "tempScalaTestOutput.txt");
-        BufferedReader reader = new BufferedReader(new FileReader(outputFile));
+		// ScalaTest's FileReporter uses default character encoding so that's what we'll use here, too.
+		File outputFile = new File( System.getProperty( "java.io.tmpdir" ), "tempScalaTestOutput.txt" );
+		BufferedReader reader = new BufferedReader( new FileReader( outputFile ) );
 
-        try {
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                writer.println(line);
-            }
-            return fileContents.toString();
-        }
-        finally {
-            try {
-                reader.close();
-                outputFile.delete();
-            }
-            catch (IOException ignored) {}
-        }
-    }
+		try {
+			String line = null;
+			while( (line = reader.readLine()) != null ) {
+				writer.println( line );
+			}
+			return fileContents.toString();
+		} finally {
+			try {
+				reader.close();
+				outputFile.delete();
+			} catch (IOException ignored) {
+			}
+		}
+	}
 
-    public String getOutputName() {
-        return "scalatest-output";
-    }
+	public String getOutputName() {
+		return "scalatest-output";
+	}
 
-    public String getCategoryName() {
-        return CATEGORY_PROJECT_REPORTS;
-    }
+	public String getCategoryName() {
+		return CATEGORY_PROJECT_REPORTS;
+	}
 
-    public String getName(Locale locale) {
-        return getLocalizedString(locale, "reporter.mojo.name");
-    }
+	public String getName(Locale locale) {
+		return getLocalizedString( locale, "reporter.mojo.name" );
+	}
 
-    public String getDescription(Locale locale) {
-        return getLocalizedString(locale, "reporter.mojo.description");
-    }
+	public String getDescription(Locale locale) {
+		return getLocalizedString( locale, "reporter.mojo.description" );
+	}
 
-    public void setReportOutputDirectory(File outputDirectory) {
-        reportingOutputDirectory = outputDirectory;
-    }
+	public void setReportOutputDirectory(File outputDirectory) {
+		reportingOutputDirectory = outputDirectory;
+	}
 
-    public File getReportOutputDirectory() {
-        return reportingOutputDirectory;
-    }
+	public File getReportOutputDirectory() {
+		return reportingOutputDirectory;
+	}
 
-    public boolean isExternalReport() {
-        return false;
-    }
+	public boolean isExternalReport() {
+		return false;
+	}
 
-    public boolean canGenerateReport() {
-        return true;
-    }
+	public boolean canGenerateReport() {
+		return true;
+	}
 
-    private String getLocalizedString(Locale locale, String resourceKey) {
-        return ResourceBundle.getBundle("mojoResources", locale, getClass().getClassLoader()).getString(resourceKey);
-    }
+	private String getLocalizedString(Locale locale, String resourceKey) {
+		return ResourceBundle.getBundle( "mojoResources", locale, getClass().getClassLoader() )
+		                     .getString( resourceKey );
+	}
 }
